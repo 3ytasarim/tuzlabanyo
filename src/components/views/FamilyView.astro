@@ -1,0 +1,120 @@
+---
+/** Ürün ailesi (hub) sayfası: karar rehberi. Başlık → cevap (GEO) → karşılaştırma tablosu → kartlar → galeri → SSS → CTA. */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/layout/PageHero.astro";
+import ServiceCard from "@/components/ui/ServiceCard.astro";
+import PhotoGallery from "@/components/react/PhotoGallery";
+import FaqAccordion from "@/components/react/FaqAccordion";
+import { toImgs } from "@/utils/img";
+import FinalCta from "@/components/home/FinalCta.astro";
+import Icon from "@/components/ui/Icon.astro";
+import SplitHeading from "@/components/ui/SplitHeading.astro";
+import { servicesOf, serviceBySlug, type Family } from "@/data/services";
+import { isOwn } from "@/data/photos";
+import { site } from "@/config/site";
+import { graph, webPageSchema, breadcrumbSchema, faqSchema, itemListSchema } from "@/utils/schema";
+import { getImage } from "astro:assets";
+
+interface Props {
+  family: Family;
+}
+const { family: f } = Astro.props;
+const items = servicesOf(f.id);
+const url = `${site.url}/${f.slug}/`;
+const abs = (p: string) => new URL(p, site.url).href;
+const crumbs = [
+  { name: "Ana sayfa", href: "/" },
+  { name: f.name, href: `/${f.slug}/` },
+];
+const photosAll = items.flatMap((s) => s.photos.filter(isOwn).map((p) => ({ p, slug: s.slug })));
+const uniquePhotos = photosAll.filter((x, i) => photosAll.findIndex((y) => y.p.id === x.p.id) === i);
+
+const galImgs = await toImgs(uniquePhotos.map((x) => x.p), { widths: [480, 720, 960, 1280] });
+const galKeys = uniquePhotos.map((x) => x.slug);
+const hero = await getImage({ src: f.heroPhoto.src, width: 1200, format: "jpg", quality: 80 });
+const breadcrumbId = `${url}#breadcrumb`;
+const jsonLd = graph([
+  webPageSchema({ type: "CollectionPage", url, name: f.metaTitle, description: f.metaDescription, image: abs(hero.src), breadcrumbId }),
+  breadcrumbSchema(crumbs.map((c) => ({ name: c.name, url: abs(c.href) })), breadcrumbId),
+  itemListSchema(items.map((s) => ({ name: s.name, url: abs(`/${s.slug}/`) }))),
+  faqSchema(f.faqs),
+]);
+const [first, ...rest] = f.name.split(" ");
+---
+
+<BaseLayout title={f.metaTitle} description={f.metaDescription} path={`/${f.slug}/`} ogImage={f.heroPhoto.src} ogImageAlt={f.heroPhoto.alt} jsonLd={jsonLd} topic={f.navLabel.toLocaleLowerCase("tr")}>
+  <PageHero eyebrow={f.eyebrow} title={first!} accent={rest.join(" ")} lead={f.lead} crumbs={crumbs} photo={f.heroPhoto} topic={f.navLabel.toLocaleLowerCase("tr")} />
+
+  <section aria-labelledby="secim-title" class="mx-auto grid max-w-[82.5rem] gap-10 px-5 py-20 sm:px-8 lg:grid-cols-12 lg:gap-8 lg:px-10 lg:py-28">
+    <div class="lg:col-span-4">
+      <p class="eyebrow">Nasıl seçilir?</p>
+      <SplitHeading id="secim-title" parts={[["Doğru sistemi"], ["birkaç soruda", true], ["bulun."]]} class="mt-4 text-h2 font-semibold" />
+    </div>
+    <div class="lg:col-span-7 lg:col-start-6">
+      <p class="text-[clamp(1.2rem,1.05rem+0.6vw,1.5rem)] font-medium leading-relaxed" data-reveal>{f.answer}</p>
+      {f.body.map((p) => <p class="mt-6 text-muted" data-reveal>{p}</p>)}
+    </div>
+  </section>
+
+  <!-- Karşılaştırma -->
+  <section aria-labelledby="karsilastirma-title" class="mx-auto max-w-[82.5rem] px-5 pb-20 sm:px-8 lg:px-10 lg:pb-28">
+    <h2 id="karsilastirma-title" class="sr-only">Karşılaştırma tablosu</h2>
+    <div class="glass overflow-hidden rounded-2xl" data-reveal>
+      <table class="cmp w-full border-collapse text-left text-[0.9375rem]">
+        <caption class="sr-only">{f.name} karşılaştırması</caption>
+        <thead>
+          <tr class="border-b border-line">
+            {f.compare.head.map((h) => <th scope="col" class="px-5 py-4 font-display text-xs font-semibold uppercase tracking-[0.14em] text-muted">{h}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {f.compare.rows.map((r) => {
+            const s = serviceBySlug(r.slug)!;
+            return (
+              <tr class="border-b border-line last:border-0">
+                <th scope="row" class="px-5 py-5">
+                  <a href={`/${s.slug}/`} class="group inline-flex items-center gap-2 font-display font-semibold hover:text-glass">
+                    {s.name} <Icon name="arrow" size={16} class="opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
+                  </a>
+                </th>
+                {r.cells.map((c, i) => <td class="px-5 py-5 text-muted" data-label={f.compare.head[i + 1]}>{c}</td>)}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="tipler-title" class="on-night night-glow text-night-text">
+    <div class="mx-auto max-w-[82.5rem] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+      <p class="eyebrow">{f.eyebrow}</p>
+      <h2 id="tipler-title" class="mt-4 text-h2 font-semibold">Tüm {f.navLabel.toLocaleLowerCase("tr")} seçenekleri</h2>
+      <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((s, i) => <ServiceCard service={s} index={i} />)}
+      </div>
+    </div>
+  </section>
+
+  {
+    uniquePhotos.length > 0 && (
+      <section aria-labelledby="fam-gal-title" class="mx-auto max-w-[82.5rem] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+        <p class="eyebrow">Uygulamalarımızdan</p>
+        <h2 id="fam-gal-title" class="mb-10 mt-4 text-h2 font-semibold">Gerçek işlerimiz</h2>
+        <PhotoGallery client:visible items={galImgs} keys={galKeys} group={f.slug} filters={items.filter((s) => s.photos.some(isOwn)).map((s) => ({ id: s.slug, label: s.name }))} />
+      </section>
+    )
+  }
+
+  <FaqAccordion client:visible items={f.faqs} title={f.navLabel} accent="hakkında sık sorulanlar" />
+  <FinalCta topic={f.navLabel.toLocaleLowerCase("tr")} />
+</BaseLayout>
+
+<style>
+  @media (max-width: 47.99rem) {
+    .cmp thead { display: none; }
+    .cmp tr { display: block; padding: 0.5rem 0; }
+    .cmp th[scope="row"], .cmp td { display: block; padding: 0.35rem 1.25rem; }
+    .cmp td::before { content: attr(data-label) ": "; font-weight: 600; color: var(--c-ink); }
+  }
+</style>

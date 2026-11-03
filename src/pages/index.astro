@@ -1,0 +1,96 @@
+---
+import { getImage } from "astro:assets";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import HeroCinematic from "@/components/react/HeroCinematic";
+import ServicesBento from "@/components/react/ServicesBento";
+import StickyShowcase from "@/components/react/StickyShowcase";
+import HorizontalGallery from "@/components/react/HorizontalGallery";
+import ProcessTimeline from "@/components/react/ProcessTimeline";
+import FaqAccordion from "@/components/react/FaqAccordion";
+import CabinStudio from "@/components/home/CabinStudio.astro";
+import CamBalkon from "@/components/home/CamBalkon.astro";
+import FinalCta from "@/components/home/FinalCta.astro";
+import { photos, allPhotos } from "@/data/photos";
+import { homeFaqs } from "@/data/faqs";
+import { processSteps } from "@/data/process";
+import { services, servicesOf, familyList } from "@/data/services";
+import { site, whatsappHref } from "@/config/site";
+import { businessSchema, websiteSchema, graph } from "@/utils/schema";
+import { toImg, toImgs, type Img } from "@/utils/img";
+import logoSrc from "@/assets/brand/logo-light-bg.png";
+
+const abs = (p: string) => new URL(p, site.url).href;
+const logo = await getImage({ src: logoSrc, width: 600, format: "png" });
+const schemaImages = await Promise.all(
+  [photos.geometrikKose, photos.siyahIkiDuvar, photos.isicamBalkon].map(async (p) =>
+    abs((await getImage({ src: p.src, width: 1200, format: "jpg", quality: 80 })).src),
+  ),
+);
+// SSS şeması /sss/ sayfasında (aynı soru iki sayfada işaretlenmez)
+const catalog = services.map((s) => ({ name: s.name, url: abs(`/${s.slug}/`) }));
+const jsonLd = graph([businessSchema(abs(logo.src), schemaImages, catalog), websiteSchema()]);
+
+// Hero: üç kendi uygulama fotoğrafı (dikey kırpım)
+const heroImgs = (await toImgs([photos.kafesKose, photos.geometrikKose, photos.isicamBalkon], { ratio: 3 / 5, widths: [360, 540, 720, 960] })) as [Img, Img, Img];
+
+// Bento: aile başına hizmetler
+const bentoGroups = await Promise.all(
+  familyList.map(async (f) => ({
+    id: f.id,
+    label: f.id === "cam-balkon" ? "Balkon & Teras" : "Banyo",
+    eyebrow: f.eyebrow,
+    hubHref: `/${f.slug}/`,
+    hubLabel: `${f.name.charAt(0).toLocaleUpperCase("tr")}${f.name.slice(1)} karşılaştırması`,
+    items: await Promise.all(
+      servicesOf(f.id).map(async (s) => ({
+        name: s.name,
+        href: `/${s.slug}/`,
+        line: s.cardLine,
+        img: s.photos[0] ? await toImg(s.photos[0], { widths: [480, 720, 960, 1280] }) : null,
+      })),
+    ),
+  })),
+);
+
+// Duşakabin vitrini (yalnız kendi fotoğrafları)
+const showcase = await Promise.all(
+  servicesOf("dusakabin").map(async (s) => ({
+    name: s.name,
+    text: s.lead,
+    href: `/${s.slug}/`,
+    facts: s.facts.slice(0, 3).map((x) => x.value),
+    img: await toImg(s.photos[0]!, { ratio: 4 / 5, widths: [480, 720, 960, 1280] }),
+  })),
+);
+
+const gallery = await toImgs(
+  allPhotos.filter((p) => ![photos.kromBantliOvalAcik.id, photos.kromBantliKoseAcik.id].includes(p.id)),
+  { widths: [360, 540, 720, 960] },
+);
+const marquee = services.map((s) => s.name);
+---
+
+<BaseLayout
+  title="Tuzla Duş · Duşakabin ve Cam Balkon, Tuzla"
+  description="Tuzla'da her ölçüye duşakabin ve cam balkon imalatı ve montajı. Gerçek uygulamalarımızı inceleyin, banyonuz ya da balkonunuz için bizi arayın."
+  path="/"
+  jsonLd={jsonLd}
+>
+  <HeroCinematic client:load images={heroImgs} wa={whatsappHref()} services={marquee} />
+  <ServicesBento client:visible groups={bentoGroups} />
+  <StickyShowcase
+    client:visible
+    id="dusakabin"
+    eyebrow="01 · Banyo"
+    title="Banyonun şekli,"
+    accent="kabini belirler."
+    lead="Köşeye, nişe ya da kavisli forma göre; ölçünüzde imal edilir. Aşağıdaki tiplerin hepsi kendi uygulamalarımızdan."
+    items={showcase}
+  />
+  <CabinStudio />
+  <CamBalkon />
+  <HorizontalGallery client:visible items={gallery} instagram={site.instagram} />
+  <ProcessTimeline client:visible steps={processSteps} />
+  <FaqAccordion client:visible items={homeFaqs} />
+  <FinalCta />
+</BaseLayout>

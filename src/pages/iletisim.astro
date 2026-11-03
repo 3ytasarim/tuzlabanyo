@@ -1,0 +1,100 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/layout/PageHero.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { site, verified, primaryPhone, mobilePhone, whatsappHref, mapsUrl } from "@/config/site";
+import { photos } from "@/data/photos";
+import { graph, webPageSchema, breadcrumbSchema, BUSINESS_ID } from "@/utils/schema";
+
+const phone = primaryPhone();
+const mobile = mobilePhone();
+const wa = whatsappHref();
+const address = verified(site.address);
+const hours = verified(site.hours);
+const url = `${site.url}/iletisim/`;
+const crumbs = [
+  { name: "Ana sayfa", href: "/" },
+  { name: "İletişim", href: "/iletisim/" },
+];
+const jsonLd = graph([
+  { ...webPageSchema({ type: "ContactPage", url, name: "İletişim · Tuzla Duş", description: "Tuzla Duş telefon, WhatsApp ve adres bilgileri.", breadcrumbId: `${url}#breadcrumb` }), mainEntity: { "@id": BUSINESS_ID } },
+  breadcrumbSchema(crumbs.map((c) => ({ name: c.name, url: new URL(c.href, site.url).href })), `${url}#breadcrumb`),
+]);
+
+const cards = [
+  phone && { icon: "phone" as const, label: "Telefon", value: phone.label, href: phone.href, note: "Sabit hat", ev: "call_click" },
+  wa && mobile && { icon: "whatsapp" as const, label: "WhatsApp", value: mobile.label, href: wa, note: "Fotoğraf ve ölçü gönderebilirsiniz", ev: "whatsapp_click", external: true },
+  { icon: "pin" as const, label: "Adres", value: address ? `${address.street}, ${address.postalCode} ${address.district} / ${address.city}` : `${site.district} / ${site.city}`, href: mapsUrl(), note: "Google Haritalar'da açın", ev: "map_click", external: true },
+  { icon: "instagram" as const, label: "Instagram", value: "@tuzladus", href: site.instagram, note: "Güncel uygulamalarımız", ev: "instagram_click", external: true },
+].filter(Boolean) as { icon: "phone" | "whatsapp" | "pin" | "instagram"; label: string; value: string; href: string; note: string; ev: string; external?: boolean }[];
+---
+
+<BaseLayout
+  title="İletişim · Tuzla Duş, Yayla Mahallesi Tuzla"
+  description="Tuzla Duş iletişim: 0216 395 42 41, WhatsApp 0541 395 42 41. Yayla Mahallesi, Lütuf Sokak No:6, Tuzla/İstanbul. Duşakabin ve cam balkon için arayın."
+  path="/iletisim/"
+  jsonLd={jsonLd}
+>
+  <PageHero eyebrow="İletişim" title="Bize" accent="ulaşın." lead="Arayın, WhatsApp'tan yazın ya da adresimize gelin. Fotoğraf ve yaklaşık ölçü gönderirseniz size daha hızlı dönebiliriz." crumbs={crumbs} photo={photos.kromSeffafKose} />
+
+  <section aria-labelledby="kanallar-title" class="mx-auto max-w-[82.5rem] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+    <h2 id="kanallar-title" class="text-h2 font-semibold">İletişim bilgileri</h2>
+    <ul class="mt-10 grid gap-4 sm:grid-cols-2">
+      {
+        cards.map((c, i) => (
+          <li data-reveal style={`transition-delay:${i * 80}ms`}>
+            <a href={c.href} class="glass group flex h-full items-start gap-5 rounded-2xl p-7 transition-transform duration-500 ease-out-expo hover:-translate-y-1" data-event={c.ev} data-event-location="contact_page" {...(c.external ? { rel: "noopener", target: "_blank" } : {})}>
+              <span class:list={["inline-flex size-14 shrink-0 items-center justify-center rounded-2xl text-white", c.icon === "whatsapp" ? "bg-[#15803d]" : c.icon === "instagram" ? "bg-ink-2" : "bg-glass"]}>
+                <Icon name={c.icon} size={24} />
+              </span>
+              <span class="min-w-0">
+                <span class="eyebrow !text-[0.6875rem]">{c.label}</span>
+                <span class="mt-2 block font-display text-xl font-semibold group-hover:text-glass">{c.value}</span>
+                <span class="mt-1 block text-sm text-muted">{c.note}</span>
+                {c.external && <span class="sr-only">(yeni sekmede açılır)</span>}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    {hours ? <p class="mt-8 text-muted">Çalışma saatleri: {hours}</p> : null}
+
+    <div class="mt-16 grid gap-6 lg:grid-cols-12">
+      <div class="lg:col-span-5" data-reveal>
+        <h2 class="font-display text-h3 font-semibold">Hızlı teklif için</h2>
+        <ol class="mt-6 space-y-4 text-muted">
+          <li class="flex gap-3"><span class="font-display font-bold text-glass">1.</span> Banyonuzun ya da balkonunuzun bir iki fotoğrafını çekin.</li>
+          <li class="flex gap-3"><span class="font-display font-bold text-glass">2.</span> Biliyorsanız yaklaşık genişlik ve yüksekliği not edin.</li>
+          <li class="flex gap-3"><span class="font-display font-bold text-glass">3.</span> <span><a href="/teklif-al/" class="font-semibold text-glass link-underline">Teklif formundan</a> mesajınızı hazırlayıp WhatsApp'tan gönderin.</span></li>
+        </ol>
+      </div>
+      <div class="lg:col-span-6 lg:col-start-7" data-reveal>
+        <a href={mapsUrl()} rel="noopener" target="_blank" class="map-card group relative block overflow-hidden rounded-2xl" data-event="map_click" data-event-location="contact_map">
+          <svg viewBox="0 0 600 320" class="block h-auto w-full" aria-hidden="true">
+            <rect width="600" height="320" fill="var(--c-night)" />
+            <g stroke="#2a363c" stroke-width="2" fill="none">
+              <path d="M0 220 C120 200 200 260 320 230 S520 170 600 190" /><path d="M0 120 C140 140 240 90 360 110 S520 150 600 120" />
+              <path d="M140 0V320M300 0 280 320M460 0 480 320" /><path d="M0 60H600M0 280H600" />
+            </g>
+            <path d="M0 250 C140 235 220 290 340 262 S520 205 600 222V320H0Z" fill="#96c3ed" fill-opacity=".12" />
+            <circle cx="300" cy="150" r="46" fill="#96c3ed" fill-opacity=".15" class="map-pulse" />
+            <path d="M300 178s-26-22-26-44a26 26 0 0 1 52 0c0 22-26 44-26 44Z" fill="#96c3ed" /><circle cx="300" cy="134" r="9" fill="var(--c-night)" />
+          </svg>
+          <span class="glass-night absolute bottom-4 left-4 right-4 flex items-center justify-between gap-4 rounded-xl px-5 py-4 text-white">
+            <span class="font-display font-semibold">{site.district} · {site.city}</span>
+            <span class="inline-flex items-center gap-2 text-sm">Haritada aç <Icon name="arrow" size={16} class="transition-transform group-hover:translate-x-1" /></span>
+          </span>
+          <span class="sr-only">(Google Haritalar yeni sekmede açılır)</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  @media (prefers-reduced-motion: no-preference) {
+    .map-pulse { transform-box: fill-box; transform-origin: center; animation: pulse 2.6s ease-out infinite; }
+  }
+  @keyframes pulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+</style>

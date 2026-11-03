@@ -1,0 +1,160 @@
+---
+/** Hizmet / ürün tipi sayfası. Sıra: başlık → "nedir" (GEO) → uygunluk → uygulamalar → süreç → SSS → ilgili → CTA. */
+import { getImage } from "astro:assets";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/layout/PageHero.astro";
+import PhotoGallery from "@/components/react/PhotoGallery";
+import ProcessTimeline from "@/components/react/ProcessTimeline";
+import FaqAccordion from "@/components/react/FaqAccordion";
+import { processSteps } from "@/data/process";
+import { toImgs } from "@/utils/img";
+import ServiceCard from "@/components/ui/ServiceCard.astro";
+import FinalCta from "@/components/home/FinalCta.astro";
+import Icon from "@/components/ui/Icon.astro";
+import SplitHeading from "@/components/ui/SplitHeading.astro";
+import { familyOf, servicesOf, type Service } from "@/data/services";
+import { isOwn } from "@/data/photos";
+import { site } from "@/config/site";
+import { graph, webPageSchema, breadcrumbSchema, serviceSchema, faqSchema, imageObjectSchema } from "@/utils/schema";
+import brandOg from "@/assets/brand/og-brand.jpg";
+
+interface Props {
+  service: Service;
+}
+const { service: s } = Astro.props;
+const fam = familyOf(s.family);
+const url = `${site.url}/${s.slug}/`;
+const crumbs = [
+  { name: "Ana sayfa", href: "/" },
+  { name: fam.name, href: `/${fam.slug}/` },
+  { name: s.name, href: `/${s.slug}/` },
+];
+const related = servicesOf(s.family).filter((x) => x.slug !== s.slug);
+// Galeri ve ImageObject yalnızca işletmenin kendi uygulamaları
+const own = s.photos.filter(isOwn);
+const ownImgs = await toImgs(own, { widths: [480, 720, 960, 1280] });
+const Name = s.name.charAt(0).toLocaleUpperCase("tr") + s.name.slice(1);
+
+const abs = (p: string) => new URL(p, site.url).href;
+const imgs = await Promise.all(
+  own.map(async (p) => {
+    const i = await getImage({ src: p.src, width: 1200, format: "jpg", quality: 80 });
+    return { url: abs(i.src), caption: p.caption, width: i.attributes.width as number, height: i.attributes.height as number };
+  }),
+);
+const breadcrumbId = `${url}#breadcrumb`;
+const jsonLd = graph([
+  webPageSchema({ url, name: s.metaTitle, description: s.metaDescription, image: imgs[0]?.url, breadcrumbId }),
+  breadcrumbSchema(crumbs.map((c) => ({ name: c.name, url: abs(c.href) })), breadcrumbId),
+  serviceSchema({ url, name: s.name, description: s.answer, serviceType: s.name, images: imgs.map((i) => i.url) }),
+  faqSchema(s.faqs),
+  ...imgs.map(imageObjectSchema),
+]);
+const [first, ...rest] = s.name.split(" ");
+---
+
+<BaseLayout
+  title={s.metaTitle}
+  description={s.metaDescription}
+  path={`/${s.slug}/`}
+  ogImage={s.photos[0]?.src ?? brandOg}
+  ogImageAlt={s.photos[0]?.alt ?? "Tuzla Duş logosu"}
+  jsonLd={jsonLd}
+  topic={s.waTopic}
+>
+  <PageHero
+    eyebrow={fam.eyebrow}
+    title={first!.charAt(0).toLocaleUpperCase("tr") + first!.slice(1)}
+    accent={rest.join(" ")}
+    lead={s.lead}
+    crumbs={crumbs}
+    photo={s.photos[0]}
+    illustration={s.photos.length ? undefined : s.illustration}
+    topic={s.waTopic}
+    facts={s.facts}
+  />
+
+  <!-- Nedir (GEO: soruya doğrudan cevap) -->
+  <section aria-labelledby="nedir-title" class="mx-auto grid max-w-[82.5rem] gap-10 px-5 py-20 sm:px-8 lg:grid-cols-12 lg:gap-8 lg:px-10 lg:py-28">
+    <div class="lg:col-span-4">
+      <div class="lg:sticky lg:top-28">
+        <p class="eyebrow">Kısaca</p>
+        <SplitHeading id="nedir-title" parts={[[`${s.name.charAt(0).toLocaleUpperCase("tr")}${s.name.slice(1)}`], ["nedir?", true]]} class="mt-4 text-h2 font-semibold" />
+      </div>
+    </div>
+    <div class="lg:col-span-7 lg:col-start-6">
+      <p class="text-[clamp(1.2rem,1.05rem+0.6vw,1.5rem)] font-medium leading-relaxed text-ink" data-reveal>{s.answer}</p>
+      <div class="mt-10 space-y-5 text-muted" data-reveal>
+        {s.body.map((p) => <p>{p}</p>)}
+      </div>
+      <p class="mt-8 text-[0.9375rem] text-muted" data-reveal>
+        Diğer seçenekleri <a href={`/${fam.slug}/`} class="font-semibold text-glass link-underline">{fam.name.toLocaleLowerCase("tr")}</a> sayfasında karşılaştırabilir,
+        ölçünüzü göndermek için <a href="/teklif-al/" class="font-semibold text-glass link-underline">teklif formunu</a> kullanabilirsiniz.
+      </p>
+    </div>
+  </section>
+
+  <!-- Uygunluk -->
+  <section aria-label="Kimler için ve nelere dikkat edilmeli" class="on-night night-glow text-night-text">
+    <div class="mx-auto grid max-w-[82.5rem] gap-4 px-5 py-20 sm:px-8 md:grid-cols-2 lg:px-10 lg:py-24">
+      <div class="glass-night rounded-2xl p-7 sm:p-9" data-reveal>
+        <h2 class="font-display text-h3 font-semibold">Kimler için uygun?</h2>
+        <ul class="mt-6 space-y-4">
+          {s.suits.map((t) => (
+            <li class="flex gap-3"><Icon name="check" class="mt-0.5 shrink-0 text-glass-light" /> <span>{t}</span></li>
+          ))}
+        </ul>
+      </div>
+      <div class="glass-night rounded-2xl p-7 sm:p-9" data-reveal style="transition-delay:120ms">
+        <h2 class="font-display text-h3 font-semibold">Nelere dikkat edilmeli?</h2>
+        <ul class="mt-6 space-y-4">
+          {s.considerations.map((t) => (
+            <li class="flex gap-3"><Icon name="ruler" class="mt-0.5 shrink-0 text-glass-light" /> <span class="text-night-muted">{t}</span></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {
+    own.length > 0 && (
+      <section aria-labelledby="uygulama-title" class="mx-auto max-w-[82.5rem] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+        <div class="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p class="eyebrow">Uygulamalarımızdan</p>
+            <h2 id="uygulama-title" class="mt-4 text-h2 font-semibold">{s.name.charAt(0).toLocaleUpperCase("tr") + s.name.slice(1)} örneklerimiz</h2>
+          </div>
+          <a href="/uygulamalarimiz/" class="inline-flex min-h-12 items-center gap-2 font-display text-sm font-semibold hover:text-glass">
+            <span class="link-underline">Tüm uygulamalar</span> <Icon name="arrow" size={18} />
+          </a>
+        </div>
+        <PhotoGallery client:visible items={ownImgs} group={s.slug} />
+      </section>
+    )
+  }
+
+  <ProcessTimeline client:visible steps={processSteps} title="Ölçüden montaja" accent="nasıl ilerliyoruz?" />
+
+  <FaqAccordion client:visible items={s.faqs} title={Name} accent="hakkında sorular" headingId="sss-title" />
+
+  {
+    related.length > 0 && (
+      <section aria-labelledby="ilgili-title" class="mx-auto max-w-[82.5rem] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+        <div class="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p class="eyebrow">{fam.eyebrow}</p>
+            <h2 id="ilgili-title" class="mt-4 text-h2 font-semibold">Diğer seçenekler</h2>
+          </div>
+          <a href={`/${fam.slug}/`} class="inline-flex min-h-12 items-center gap-2 font-display text-sm font-semibold hover:text-glass">
+            <span class="link-underline">Karşılaştırma tablosu</span> <Icon name="arrow" size={18} />
+          </a>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {related.slice(0, 3).map((r, i) => <ServiceCard service={r} index={i} />)}
+        </div>
+      </section>
+    )
+  }
+
+  <FinalCta topic={s.waTopic} title={`${s.name.charAt(0).toLocaleUpperCase("tr") + s.name.slice(1)} için ölçü ve fiyat alın.`} lead="Alanınızın fotoğrafını ve yaklaşık ölçüsünü WhatsApp'tan gönderin ya da arayın; seçenekleri birlikte netleştirelim." />
+</BaseLayout>

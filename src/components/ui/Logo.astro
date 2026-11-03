@@ -1,0 +1,44 @@
+---
+/**
+ * Logo: firma logosunun yalnızca görsel + başlık kısmı, yatay yerleşim.
+ * `tone="auto"` sistem temasına göre açık/koyu zemin sürümünü seçer; `tone="night"` her zaman koyu zemin içindir.
+ */
+import { getImage } from "astro:assets";
+import lockupLight from "@/assets/brand/lockup-light-bg.png";
+import lockupDark from "@/assets/brand/lockup-dark-bg.png";
+
+interface Props {
+  tone?: "auto" | "night";
+  /** CSS yüksekliği (px) */
+  height?: number;
+  class?: string;
+  eager?: boolean;
+  /** Duyarlı yükseklik için img sınıfı (ör. "h-11 lg:h-13"); `height` en büyük boyut olmalı. */
+  imgClass?: string;
+}
+
+const { tone = "night", height = 48, class: className, eager = false, imgClass } = Astro.props;
+const width = Math.round((lockupLight.width / lockupLight.height) * height);
+const widths = [width, width * 2];
+
+const fmt = { format: "webp" as const, quality: 90 };
+const light = await getImage({ src: lockupLight, widths, ...fmt });
+const dark = await getImage({ src: lockupDark, widths, ...fmt });
+const fallback = tone === "night" ? dark : light;
+---
+
+<picture class={className}>
+  {tone === "auto" && <source media="(prefers-color-scheme: dark)" srcset={dark.srcSet.attribute} type="image/webp" />}
+  <img
+    src={fallback.src}
+    srcset={fallback.srcSet.attribute}
+    sizes={`${width}px`}
+    width={width}
+    height={height}
+    alt="Tuzla Duş · Duş, Cam Balkon"
+    loading={eager ? "eager" : "lazy"}
+    decoding="async"
+    class:list={["w-auto", imgClass]}
+    style={imgClass ? undefined : `height:${height}px`}
+  />
+</picture>

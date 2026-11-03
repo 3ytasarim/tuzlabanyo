@@ -1,0 +1,209 @@
+---
+/**
+ * Teklif al: sunucuya veri GÖNDERMEYEN form. Seçimler cihazda bir WhatsApp mesajına çevrilir;
+ * ziyaretçi WhatsApp'ta kendisi gönderir. JS yoksa: doğrudan WhatsApp ve telefon bağlantıları.
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/layout/PageHero.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { familyList, servicesOf } from "@/data/services";
+import { site, verified, primaryPhone, whatsappHref } from "@/config/site";
+import { photos } from "@/data/photos";
+import { graph, webPageSchema, breadcrumbSchema } from "@/utils/schema";
+
+const wa = verified(site.whatsapp);
+const waPlain = whatsappHref();
+const phone = primaryPhone();
+const url = `${site.url}/teklif-al/`;
+const crumbs = [
+  { name: "Ana sayfa", href: "/" },
+  { name: "Teklif al", href: "/teklif-al/" },
+];
+const jsonLd = graph([
+  webPageSchema({ type: "ContactPage", url, name: "Teklif Al · Tuzla Duş", description: "Duşakabin ve cam balkon için teklif isteyin.", breadcrumbId: `${url}#breadcrumb` }),
+  breadcrumbSchema(crumbs.map((c) => ({ name: c.name, url: new URL(c.href, site.url).href })), `${url}#breadcrumb`),
+]);
+---
+
+<BaseLayout
+  title="Teklif Al · Duşakabin ve Cam Balkon | Tuzla Duş"
+  description="Duşakabin, cam balkon ve cam sistemleri için ölçünüzü ve isteğinizi seçin; mesajınız WhatsApp'ta hazır olsun. Fotoğraf ekleyerek hızlı teklif alın."
+  path="/teklif-al/"
+  jsonLd={jsonLd}
+>
+  <PageHero
+    eyebrow="Teklif"
+    title="Ölçünüzü gönderin,"
+    accent="fiyatı birlikte netleştirelim."
+    lead="Birkaç seçim yapın; mesajınız WhatsApp'ta hazır olsun. Alanınızın fotoğrafını eklerseniz daha hızlı ve doğru dönüş yapabiliriz."
+    crumbs={crumbs}
+    photo={photos.siyahIkiDuvar}
+  />
+
+  <section aria-labelledby="form-title" class="mx-auto grid max-w-[82.5rem] gap-10 px-5 py-20 sm:px-8 lg:grid-cols-12 lg:gap-8 lg:px-10 lg:py-28">
+    <div class="lg:col-span-7">
+      <h2 id="form-title" class="text-h2 font-semibold">Teklif mesajınızı hazırlayın</h2>
+      <p class="mt-4 text-muted">Bu form hiçbir bilgiyi sitemize kaydetmez. "WhatsApp'ta gönder" düğmesine bastığınızda mesaj WhatsApp'ta açılır; göndermek size kalır.</p>
+
+      <form class="quote-form glass mt-10 space-y-8 rounded-2xl p-6 sm:p-9" data-quote data-wa={wa ?? ""} novalidate>
+        <fieldset>
+          <legend class="font-display text-lg font-semibold">1. Ne için teklif istiyorsunuz?</legend>
+          {
+            familyList.map((f) => (
+              <div class="mt-5">
+                <p class="eyebrow !text-[0.6875rem]">{f.navLabel}</p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  {servicesOf(f.id).map((s, i) => (
+                    <label class="q-chip">
+                      <input type="radio" name="service" value={s.name} class="sr-only" required checked={f.id === "dusakabin" && i === 0} />
+                      {s.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+        </fieldset>
+
+        <fieldset>
+          <legend class="font-display text-lg font-semibold">2. Yaklaşık ölçü <span class="font-sans text-sm font-normal text-muted">(biliyorsanız)</span></legend>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2">
+            <label class="q-field">
+              <span>Genişlik (cm)</span>
+              <input type="number" name="width" inputmode="numeric" min="10" max="2000" placeholder="ör. 90" autocomplete="off" />
+            </label>
+            <label class="q-field">
+              <span>Yükseklik ya da derinlik (cm)</span>
+              <input type="number" name="height" inputmode="numeric" min="10" max="2000" placeholder="ör. 120" autocomplete="off" />
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="font-display text-lg font-semibold">3. Nerede?</legend>
+          <label class="q-field mt-4">
+            <span>İlçe / semt</span>
+            <input type="text" name="area" maxlength="60" placeholder="ör. Tuzla, Aydınlı" autocomplete="address-level2" />
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend class="font-display text-lg font-semibold">4. Eklemek istedikleriniz</legend>
+          <label class="q-field mt-4">
+            <span>Not <span class="text-muted">(profil rengi, cam tipi, zemin durumu…)</span></span>
+            <textarea name="note" rows="3" maxlength="500"></textarea>
+          </label>
+        </fieldset>
+
+        <div class="glass-tip flex gap-3 rounded-xl border border-line p-4 text-sm text-muted">
+          <Icon name="ruler" class="shrink-0 text-glass" />
+          <p>Mesajı gönderdikten sonra WhatsApp'ta banyonuzun ya da balkonunuzun bir iki fotoğrafını ekleyin. Kesin ölçü imalattan önce yerinde alınır.</p>
+        </div>
+
+        <div class="flex flex-col gap-3 border-t border-line pt-6 sm:flex-row sm:items-center">
+          {wa && (
+            <button type="submit" class="inline-flex min-h-14 items-center justify-center gap-2.5 rounded-sm bg-[#15803d] px-7 font-display font-semibold text-white transition-colors hover:bg-[#166534]" data-event="quote_submit">
+              <Icon name="whatsapp" /> WhatsApp'ta gönder
+            </button>
+          )}
+          {phone && (
+            <a href={phone.href} class="inline-flex min-h-14 items-center justify-center gap-2.5 rounded-sm border border-ink/70 px-6 font-display font-semibold hover:bg-ink hover:text-paper" data-event="call_click" data-event-location="quote_form">
+              <Icon name="phone" /> Ya da arayın: {phone.label}
+            </a>
+          )}
+        </div>
+        <p class="sr-only" aria-live="polite" data-quote-status></p>
+      </form>
+      <noscript>
+        <p class="mt-6 text-muted">
+          Formu kullanmak için JavaScript gerekir.
+          {waPlain && <a href={waPlain} class="font-semibold text-glass underline">WhatsApp'tan doğrudan yazın</a>}
+          {phone && <> ya da <a href={phone.href} class="font-semibold text-glass underline">{phone.label}</a> numarasını arayın.</>}
+        </p>
+      </noscript>
+    </div>
+
+    <aside class="lg:col-span-4 lg:col-start-9" aria-label="Önizleme">
+      <div class="lg:sticky lg:top-28">
+        <p class="eyebrow">Mesaj önizlemesi</p>
+        <div class="wa-preview mt-4 rounded-2xl p-5">
+          <div class="flex items-center gap-3 border-b border-white/10 pb-4 text-white">
+            <span class="inline-flex size-10 items-center justify-center rounded-full bg-[#15803d]"><Icon name="whatsapp" /></span>
+            <div>
+              <p class="font-display font-semibold">Tuzla Duş</p>
+              <p class="text-xs text-white/60">WhatsApp</p>
+            </div>
+          </div>
+          <p class="wa-bubble mt-5 whitespace-pre-line rounded-xl rounded-tr-sm px-4 py-3 text-[0.9375rem] leading-relaxed" data-quote-preview></p>
+        </div>
+      </div>
+    </aside>
+  </section>
+</BaseLayout>
+
+<style>
+  .q-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid var(--c-line);
+    border-radius: 999px;
+    background: var(--c-surface);
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 200ms, color 200ms, border-color 200ms;
+  }
+  .q-chip:hover { border-color: var(--c-ink); }
+  .q-chip:has(input:checked) { background: var(--c-ink); border-color: var(--c-ink); color: var(--c-paper); }
+  .q-chip:has(input:focus-visible) { outline: 2px solid var(--c-glass); outline-offset: 3px; }
+  .q-field { display: grid; gap: 0.5rem; font-size: 0.9375rem; font-weight: 500; }
+  .q-field input, .q-field textarea {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--c-line);
+    border-radius: 6px;
+    background: var(--c-surface);
+    color: var(--c-ink);
+    font: inherit;
+    font-weight: 400;
+    transition: border-color 200ms, box-shadow 200ms;
+  }
+  .q-field input:focus, .q-field textarea:focus { outline: none; border-color: var(--c-glass); box-shadow: 0 0 0 3px rgb(30 101 181 / 0.18); }
+  .wa-preview { background: linear-gradient(160deg, #0b1f17, #10171b); border: 1px solid rgb(255 255 255 / 0.08); }
+  .wa-bubble { margin-left: auto; max-width: 92%; background: #1f5f3f; color: #f0fdf4; }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-quote]");
+  if (form) {
+    const preview = document.querySelector<HTMLElement>("[data-quote-preview]")!;
+    const status = form.querySelector<HTMLElement>("[data-quote-status]")!;
+    const wa = form.dataset.wa?.replace(/^\+/, "") ?? "";
+    const val = (n: string) => (form.elements.namedItem(n) as HTMLInputElement | null)?.value.trim() ?? "";
+    const build = () => {
+      const service = (form.querySelector<HTMLInputElement>('input[name="service"]:checked')?.value ?? "").toLocaleLowerCase("tr");
+      const w = val("width");
+      const h = val("height");
+      const lines = [`Merhaba Tuzla Duş, ${service} için fiyat teklifi almak istiyorum.`];
+      if (w || h) lines.push(`Yaklaşık ölçü: ${w || "?"} x ${h || "?"} cm`);
+      if (val("area")) lines.push(`Yer: ${val("area")}`);
+      if (val("note")) lines.push(`Not: ${val("note")}`);
+      lines.push("Fotoğrafları bu mesajdan sonra gönderiyorum.");
+      return lines.join("\n");
+    };
+    const update = () => (preview.textContent = build());
+    form.addEventListener("input", update);
+    form.addEventListener("change", update);
+    update();
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!wa) return;
+      status.textContent = "WhatsApp yeni sekmede açılıyor.";
+      window.open(`https://wa.me/${wa}?text=${encodeURIComponent(build())}`, "_blank", "noopener");
+    });
+  }
+</script>

@@ -1,0 +1,51 @@
+---
+/** Gerçek uygulama fotoğrafı: AVIF + WebP, srcset, sabit en-boy oranı (CLS 0). */
+import { Picture } from "astro:assets";
+import type { Photo as PhotoData } from "@/data/photos";
+
+interface Props {
+  photo: PhotoData;
+  /** <img sizes> değeri */
+  sizes: string;
+  /** Kırpma oranı, ör. "3/4". Verilmezse orijinal oran. */
+  ratio?: string;
+  widths?: number[];
+  priority?: boolean;
+  class?: string;
+  imgClass?: string;
+  /** Odak noktası (object-position) */
+  position?: string;
+}
+
+const {
+  photo,
+  sizes,
+  ratio,
+  widths = [480, 720, 960, 1280, 1600, 2000],
+  priority = false,
+  class: className,
+  imgClass,
+  position = "50% 50%",
+} = Astro.props;
+
+const maxW = photo.src.width;
+const usable = widths.filter((w) => w <= maxW);
+---
+
+<div class:list={["relative overflow-hidden bg-line", className]} style={ratio ? `aspect-ratio:${ratio}` : undefined}>
+  <Picture
+    src={photo.src}
+    alt={photo.alt}
+    widths={usable.length ? usable : [maxW]}
+    sizes={sizes}
+    formats={["avif", "webp"]}
+    fallbackFormat="webp"
+    width={Math.min(maxW, Math.max(...(usable.length ? usable : [maxW])))}
+    quality={72}
+    loading={priority ? "eager" : "lazy"}
+    fetchpriority={priority ? "high" : "auto"}
+    decoding={priority ? "sync" : "async"}
+    class:list={["size-full object-cover", imgClass]}
+    style={`object-position:${position}`}
+  />
+</div>

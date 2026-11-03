@@ -1,0 +1,56 @@
+---
+/** Uygulamalar galerisi. Görsel SEO: ImageGallery + ImageObject (kaynak/hak sahibi işletme), figcaption, anlamlı ALT. */
+import { getImage } from "astro:assets";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/layout/PageHero.astro";
+import PhotoGallery from "@/components/react/PhotoGallery";
+import { toImgs } from "@/utils/img";
+import FinalCta from "@/components/home/FinalCta.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { allPhotos, photos } from "@/data/photos";
+import { site } from "@/config/site";
+import { graph, webPageSchema, breadcrumbSchema, imageObjectSchema } from "@/utils/schema";
+
+const url = `${site.url}/uygulamalarimiz/`;
+const abs = (p: string) => new URL(p, site.url).href;
+const crumbs = [
+  { name: "Ana sayfa", href: "/" },
+  { name: "Uygulamalarımız", href: "/uygulamalarimiz/" },
+];
+const imgs = await Promise.all(
+  allPhotos.map(async (p) => {
+    const i = await getImage({ src: p.src, width: 1200, format: "jpg", quality: 80 });
+    return { url: abs(i.src), caption: p.caption, width: i.attributes.width as number, height: i.attributes.height as number };
+  }),
+);
+const galImgs = await toImgs(allPhotos, { widths: [480, 720, 960, 1280] });
+const jsonLd = graph([
+  {
+    ...webPageSchema({ type: "CollectionPage", url, name: "Uygulamalarımız · Tuzla Duş", description: "Duşakabin ve cam balkon uygulama fotoğrafları.", breadcrumbId: `${url}#breadcrumb` }),
+    "@type": ["CollectionPage", "ImageGallery"],
+    image: imgs.map(imageObjectSchema),
+  },
+  breadcrumbSchema(crumbs.map((c) => ({ name: c.name, url: abs(c.href) })), `${url}#breadcrumb`),
+]);
+---
+
+<BaseLayout
+  title="Uygulamalarımız · Duşakabin ve Cam Balkon Fotoğrafları"
+  description="Tuzla Duş'un gerçek duşakabin ve cam balkon uygulamaları: köşe, oval, iki duvar arası, desenli kabinler ve cam balkonlar. Fotoğrafları büyüterek inceleyin."
+  path="/uygulamalarimiz/"
+  jsonLd={jsonLd}
+>
+  <PageHero eyebrow="Uygulamalarımız" title="Katalogdan değil," accent="işlerimizden." lead="Banyolarda ve balkonlarda yaptığımız uygulamalar. Fotoğrafların hepsi kendi işlerimizdir; büyütmek için dokunun." crumbs={crumbs} photo={photos.geometrikKose} />
+
+  <section aria-labelledby="galeri-title" class="mx-auto max-w-[82.5rem] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+    <div class="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <h2 id="galeri-title" class="text-h2 font-semibold">Fotoğraf galerisi</h2>
+      <a href={site.instagram} rel="noopener" target="_blank" class="inline-flex min-h-12 items-center gap-2 font-display text-sm font-semibold hover:text-glass">
+        <Icon name="instagram" size={18} /> <span class="link-underline">Daha fazlası Instagram'da</span><span class="sr-only">(yeni sekmede açılır)</span>
+      </a>
+    </div>
+    <PhotoGallery client:visible items={galImgs} group="uyg" filters={[{ id: "dusakabin", label: "Duşakabin" }, { id: "cam-balkon", label: "Cam balkon" }]} />
+  </section>
+
+  <FinalCta />
+</BaseLayout>

@@ -1,0 +1,61 @@
+---
+/**
+ * SSS: genel sorular (FAQPage şeması burada). Hizmete özel sorular kendi sayfalarında ve şemalarında
+ * durur; burada yalnızca o sayfalara bağlantı verilir (aynı soru iki sayfada işaretlenmez).
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/layout/PageHero.astro";
+import FaqAccordion from "@/components/react/FaqAccordion";
+import FinalCta from "@/components/home/FinalCta.astro";
+import { homeFaqs } from "@/data/faqs";
+import { familyList, servicesOf } from "@/data/services";
+import { photos } from "@/data/photos";
+import { site } from "@/config/site";
+import { graph, webPageSchema, breadcrumbSchema, faqSchema } from "@/utils/schema";
+
+const url = `${site.url}/sss/`;
+const crumbs = [
+  { name: "Ana sayfa", href: "/" },
+  { name: "Sık sorulan sorular", href: "/sss/" },
+];
+const jsonLd = graph([
+  webPageSchema({ type: "FAQPage", url, name: "Sık Sorulan Sorular · Tuzla Duş", description: "Duşakabin ve cam balkon hakkında sık sorulan sorular.", breadcrumbId: `${url}#breadcrumb` }),
+  breadcrumbSchema(crumbs.map((c) => ({ name: c.name, url: new URL(c.href, site.url).href })), `${url}#breadcrumb`),
+  faqSchema(homeFaqs),
+]);
+---
+
+<BaseLayout
+  title="Sık Sorulan Sorular · Duşakabin ve Cam Balkon | Tuzla Duş"
+  description="Duşakabin ve cam balkon seçerken merak edilenler: sürgülü mi menteşeli mi, ölçü nasıl alınır, ısıcam ne işe yarar, fiyatı neler belirler. Kısa ve net cevaplar."
+  path="/sss/"
+  jsonLd={jsonLd}
+>
+  <PageHero eyebrow="SSS" title="Sık sorulan" accent="sorular." lead="Karar vermeden önce en çok merak edilenlere kısa ve net cevaplar. Hizmete özel sorular ilgili sayfalarda." crumbs={crumbs} photo={photos.siyahBuzluOval} />
+  <FaqAccordion client:visible items={homeFaqs} eyebrow="Genel" title="Duşakabin ve cam balkon" accent="hakkında" headingId="genel-sss" />
+
+  <section aria-labelledby="hizmet-sss" class="mx-auto max-w-[82.5rem] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+    <p class="eyebrow">Hizmete göre</p>
+    <h2 id="hizmet-sss" class="mt-4 text-h2 font-semibold">Daha fazla soru</h2>
+    <div class="mt-10 grid gap-4 md:grid-cols-2">
+      {
+        familyList.map((f) => (
+          <div class="glass rounded-2xl p-7" data-reveal>
+            <h3 class="font-display text-lg font-semibold">{f.name.charAt(0).toLocaleUpperCase("tr") + f.name.slice(1)}</h3>
+            <ul class="mt-4 divide-y divide-line">
+              {servicesOf(f.id).map((s) => (
+                <li>
+                  <a href={`/${s.slug}/#sss-title`} class="flex min-h-12 items-center justify-between gap-4 py-2 hover:text-glass">
+                    <span>{s.name}</span>
+                    <span class="text-sm text-muted">{s.faqs.length} soru</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+  <FinalCta />
+</BaseLayout>

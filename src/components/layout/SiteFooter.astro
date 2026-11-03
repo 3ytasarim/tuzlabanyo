@@ -1,0 +1,85 @@
+---
+import Logo from "@/components/ui/Logo.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { familyList, servicesOf } from "@/data/services";
+import { site, primaryPhone, mobilePhone, whatsappHref, verified, mapsUrl } from "@/config/site";
+
+const phone = primaryPhone();
+const mobile = mobilePhone();
+const wa = whatsappHref();
+const address = verified(site.address);
+const hours = verified(site.hours);
+const year = new Date().getFullYear();
+const pages = [
+  { label: "Hizmetlerimiz", href: "/hizmetlerimiz/" },
+  { label: "Uygulamalarımız", href: "/uygulamalarimiz/" },
+  { label: "Hakkımızda", href: "/hakkimizda/" },
+  { label: "Sık sorulan sorular", href: "/sss/" },
+  { label: "Teklif al", href: "/teklif-al/" },
+  { label: "İletişim", href: "/iletisim/" },
+];
+---
+
+<footer class="on-night relative overflow-hidden border-t border-white/[0.07] bg-[#040607] text-night-text" id="iletisim">
+  <div class="mx-auto max-w-[82.5rem] px-5 pb-32 pt-16 sm:px-8 lg:px-10 lg:pb-12 lg:pt-20">
+    <div class="grid gap-12 lg:grid-cols-12">
+      <div class="lg:col-span-4">
+        <Logo tone="night" height={56} />
+        <p class="mt-6 max-w-sm text-night-muted">Tuzla'da duşakabin, cam balkon ve cam sistemleri imalatı ve montajı.</p>
+        <a href={site.instagram} class="mt-6 inline-flex min-h-12 items-center gap-2 hover:text-glass-light" rel="noopener" target="_blank">
+          <Icon name="instagram" /> <span class="link-underline">@tuzladus</span><span class="sr-only">(yeni sekmede açılır)</span>
+        </a>
+      </div>
+
+      {
+        familyList.map((f) => (
+          <nav aria-label={f.name} class="lg:col-span-2">
+            <h2 class="eyebrow mb-5"><a href={`/${f.slug}/`} class="hover:text-night-text">{f.navLabel}</a></h2>
+            <ul class="space-y-1">
+              {servicesOf(f.id).map((s) => (
+                <li><a href={`/${s.slug}/`} class="link-underline inline-flex min-h-10 items-center text-[0.9375rem]">{s.name}</a></li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+
+      <nav aria-label="Kurumsal" class="lg:col-span-2">
+        <h2 class="eyebrow mb-5">Kurumsal</h2>
+        <ul class="space-y-1">
+          {pages.map((l) => <li><a href={l.href} class="link-underline inline-flex min-h-10 items-center text-[0.9375rem]">{l.label}</a></li>)}
+        </ul>
+      </nav>
+
+      <div class="lg:col-span-2">
+        <h2 class="eyebrow mb-5">İletişim</h2>
+        <address class="space-y-3 not-italic">
+          {phone && <a href={phone.href} class="flex min-h-10 items-center gap-2.5 font-display font-semibold hover:text-glass-light" data-event="call_click" data-event-location="footer"><Icon name="phone" size={18} /> {phone.label}</a>}
+          {wa && mobile && <a href={wa} rel="noopener" target="_blank" class="flex min-h-10 items-center gap-2.5 hover:text-glass-light"><Icon name="whatsapp" size={18} /> {mobile.label}</a>}
+          <a href={mapsUrl()} rel="noopener" target="_blank" class="flex gap-2.5 text-night-muted hover:text-night-text">
+            <Icon name="pin" size={18} class="mt-1 shrink-0" />
+            <span>{address ? <>{address.street},<br />{address.postalCode} {address.district} / {address.city}</> : `${site.district} / ${site.city}`}</span>
+          </a>
+          {hours && <p class="text-night-muted">{hours}</p>}
+        </address>
+      </div>
+    </div>
+
+    <p aria-hidden="true" class="footer-mark pointer-events-none mt-16 select-none text-center font-semibold leading-none tracking-[-0.06em]">Tuzla Duş</p>
+    <hr class="rule mt-6" />
+    <div class="mt-6 flex flex-col gap-3 text-sm text-night-muted sm:flex-row sm:justify-between">
+      <p>© {year} {site.name} · <a href="/gizlilik-politikasi/" class="link-underline">Gizlilik politikası</a></p>
+      <p><a href="/uygulamalarimiz/" class="link-underline">Uygulamalarımız</a> sayfasındaki fotoğraflar Tuzla Duş işleridir.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer-mark {
+    font-size: clamp(4rem, 17vw, 15rem);
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+</style>

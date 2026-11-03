@@ -1,0 +1,23 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"a"> {
+  href: string;
+  variant?: "primary" | "secondary" | "ghost-night" | "primary-night";
+  size?: "md" | "lg";
+}
+
+const { href, variant = "primary", size = "md", class: className, ...rest } = Astro.props;
+
+const base =
+  "group inline-flex items-center justify-center gap-2.5 font-display font-semibold tracking-[0.01em] rounded-sm transition-[background-color,color,border-color,transform] duration-200 ease-out-expo active:translate-y-px whitespace-nowrap";
+const sizes = { md: "min-h-12 px-5 text-[0.9375rem]", lg: "min-h-14 px-7 text-base" };
+const variants = {
+  primary: "bg-glass text-on-glass hover:bg-glass-strong",
+  secondary: "border border-ink/80 text-ink hover:bg-ink hover:text-paper",
+  "primary-night": "bg-glass-light text-night hover:bg-white",
+  "ghost-night": "border border-night-text/40 text-night-text hover:border-night-text hover:bg-night-text/10",
+};
+---
+
+<a href={href} class:list={[base, sizes[size], variants[variant], className]} {...rest}><slot /></a>

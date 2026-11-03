@@ -1,0 +1,24 @@
+---
+interface Props {
+  items: { name: string; href: string }[];
+  tone?: "light" | "night";
+}
+const { items, tone = "night" } = Astro.props;
+---
+
+<nav aria-label="Sayfa konumu" class:list={["text-[0.8125rem]", tone === "night" ? "text-night-muted" : "text-muted"]}>
+  <ol class="flex flex-wrap items-center gap-x-2 gap-y-1">
+    {
+      items.map((it, i) => (
+        <li class="flex items-center gap-2">
+          {i > 0 && <span aria-hidden="true" class="opacity-50">/</span>}
+          {i === items.length - 1 ? (
+            <span aria-current="page" class={tone === "night" ? "text-night-text" : "text-ink"}>{it.name}</span>
+          ) : (
+            <a href={it.href} class="link-underline hover:text-current">{it.name}</a>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>

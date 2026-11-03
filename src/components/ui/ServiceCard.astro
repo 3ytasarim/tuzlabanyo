@@ -1,0 +1,40 @@
+---
+/** Hizmet kartı: fotoğraf (ya da çizim) üzerinde cam bilgi paneli. Tüm kart tek bağlantı. */
+import Photo from "@/components/ui/Photo.astro";
+import Icon from "@/components/ui/Icon.astro";
+import ServiceIllustration from "@/components/ui/ServiceIllustration.astro";
+import type { Service } from "@/data/services";
+
+interface Props {
+  service: Service;
+  index?: number;
+  headingLevel?: "h2" | "h3";
+}
+const { service: s, index = 0, headingLevel: H = "h3" } = Astro.props;
+const photo = s.photos[0];
+---
+
+<a href={`/${s.slug}/`} class="svc-card group relative block overflow-hidden rounded-2xl bg-night" data-reveal style={`transition-delay:${(index % 3) * 80}ms`}>
+  {
+    photo ? (
+      <Photo photo={photo} ratio="4/5" sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw" widths={[480, 720, 960]} imgClass="transition-transform duration-[1400ms] ease-out-expo group-hover:scale-[1.06]" />
+    ) : (
+      <div class="night-glow flex items-center justify-center p-6" style="aspect-ratio:4/5">
+        {s.illustration && <ServiceIllustration kind={s.illustration} title={`${s.name} çizimi`} class="transition-transform duration-[1400ms] ease-out-expo group-hover:scale-[1.04]" />}
+      </div>
+    )
+  }
+  <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+  <div class="glass-night absolute inset-x-3 bottom-3 rounded-xl p-5 text-white transition-transform duration-500 ease-out-expo group-hover:-translate-y-1">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <H class="font-display text-lg font-semibold leading-snug">{s.name}</H>
+        <p class="mt-1 text-sm text-white/75">{s.cardLine}</p>
+      </div>
+      <span class="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/15 transition-all duration-500 ease-out-expo group-hover:bg-white group-hover:text-[#0e1418]">
+        <Icon name="arrow" size={18} />
+      </span>
+    </div>
+  </div>
+  {!photo && <span class="absolute left-4 top-4 rounded-full bg-white/10 px-3 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-white/80 backdrop-blur">Çizim</span>}
+</a>

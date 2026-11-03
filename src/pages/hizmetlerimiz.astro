@@ -1,0 +1,81 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/layout/PageHero.astro";
+import ServiceCard from "@/components/ui/ServiceCard.astro";
+import ProcessTimeline from "@/components/react/ProcessTimeline";
+import { processSteps } from "@/data/process";
+import FinalCta from "@/components/home/FinalCta.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { familyList, servicesOf, services } from "@/data/services";
+import { photos } from "@/data/photos";
+import { site } from "@/config/site";
+import { graph, webPageSchema, breadcrumbSchema, itemListSchema } from "@/utils/schema";
+
+const url = `${site.url}/hizmetlerimiz/`;
+const abs = (p: string) => new URL(p, site.url).href;
+const crumbs = [
+  { name: "Ana sayfa", href: "/" },
+  { name: "Hizmetlerimiz", href: "/hizmetlerimiz/" },
+];
+const jsonLd = graph([
+  webPageSchema({ type: "CollectionPage", url, name: "Hizmetlerimiz · Tuzla Duş", description: "Duşakabin, cam balkon ve cam sistemleri hizmetleri.", breadcrumbId: `${url}#breadcrumb` }),
+  breadcrumbSchema(crumbs.map((c) => ({ name: c.name, url: abs(c.href) })), `${url}#breadcrumb`),
+  itemListSchema(services.map((s) => ({ name: s.name, url: abs(`/${s.slug}/`) }))),
+]);
+const pillars = [
+  { icon: "ruler" as const, t: "Ölçü", d: "Kurulacak alanın ölçüsü alınır; duvar, zemin ve tavan durumu değerlendirilir." },
+  { icon: "quote" as const, t: "İmalat", d: "Kabin ya da cam sistemi her ölçüye, alınan ölçüye göre imal edilir." },
+  { icon: "check" as const, t: "Montaj", d: "Ürün yerine kurulur, kapılar ve paneller ayarlanarak teslim edilir." },
+];
+---
+
+<BaseLayout
+  title="Hizmetlerimiz · Duşakabin ve Cam Sistemleri | Tuzla Duş"
+  description="Tuzla Duş hizmetleri: duşakabin, sürme ve ısıcamlı cam balkon, giyotin cam, kış bahçesi, pergole ve alüminyum doğrama. Ölçü, imalat ve montaj."
+  path="/hizmetlerimiz/"
+  jsonLd={jsonLd}
+>
+  <PageHero eyebrow="Hizmetlerimiz" title="Ölçü, imalat" accent="ve montaj." lead="Banyodan balkona, terastan pencereye kadar cam sistemlerinde ölçüden montaja işin tamamını yapıyoruz." crumbs={crumbs} photo={photos.beyazIkiDuvar} />
+
+  <section aria-labelledby="ne-title" class="mx-auto max-w-[82.5rem] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+    <p class="eyebrow">Ne yapıyoruz</p>
+    <h2 id="ne-title" class="mt-4 max-w-2xl text-h2 font-semibold">İşin tamamı tek elden</h2>
+    <div class="mt-12 grid gap-4 md:grid-cols-3">
+      {pillars.map((p, i) => (
+        <article class="glass rounded-2xl p-7" data-reveal style={`transition-delay:${i * 100}ms`}>
+          <span class="inline-flex size-12 items-center justify-center rounded-xl bg-glass text-on-glass"><Icon name={p.icon} size={22} /></span>
+          <h3 class="mt-6 font-display text-xl font-semibold">{p.t}</h3>
+          <p class="mt-3 text-muted">{p.d}</p>
+        </article>
+      ))}
+    </div>
+    <p class="mt-8 max-w-3xl text-muted" data-reveal>
+      Bazı banyo işlerimizde duşakabini zemin yenilemesiyle birlikte yaptık. Banyonuzun zemini de değişecekse bunu baştan söylemeniz ölçünün doğru alınmasını kolaylaştırır.
+    </p>
+  </section>
+
+  {
+    familyList.map((f, k) => (
+      <section aria-labelledby={`fam-${f.id}`} class:list={[k % 2 === 0 ? "on-night night-glow text-night-text" : ""]}>
+        <div class="mx-auto max-w-[82.5rem] px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="max-w-2xl">
+              <p class="eyebrow">{f.eyebrow}</p>
+              <h2 id={`fam-${f.id}`} class="mt-4 text-h2 font-semibold">{f.name.charAt(0).toLocaleUpperCase("tr") + f.name.slice(1)}</h2>
+              <p class:list={["mt-4", k % 2 === 0 ? "text-night-muted" : "text-muted"]}>{f.lead}</p>
+            </div>
+            <a href={`/${f.slug}/`} class="inline-flex min-h-12 shrink-0 items-center gap-2 font-display text-sm font-semibold">
+              <span class="link-underline">Karşılaştırın</span> <Icon name="arrow" size={18} />
+            </a>
+          </div>
+          <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {servicesOf(f.id).map((s, i) => <ServiceCard service={s} index={i} />)}
+          </div>
+        </div>
+      </section>
+    ))
+  }
+
+  <ProcessTimeline client:visible steps={processSteps} />
+  <FinalCta />
+</BaseLayout>

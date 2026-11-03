@@ -1,0 +1,43 @@
+---
+/**
+ * Kelime kelime beliren başlık. Metin sunucuda kelimelere bölünür (JS'siz okunur, ekran okuyucu
+ * için tek parça kalır). Animasyon `.js` + `prefers-reduced-motion: no-preference` iken çalışır.
+ * `parts`: [metin, vurgulu mu] dizisi.
+ */
+interface Props {
+  as?: "h1" | "h2" | "h3";
+  parts: [string, boolean?][];
+  id?: string | undefined;
+  class?: string;
+  /** İlk görünümde hemen başlasın (hero) ya da görünür olunca */
+  immediate?: boolean;
+  delay?: number;
+}
+const { as: Tag = "h2", parts, id, class: className, immediate = false, delay = 0 } = Astro.props;
+
+let i = 0;
+const words = parts.flatMap(([text, accent]) =>
+  text
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => ({ w, accent: Boolean(accent), i: i++ })),
+);
+---
+
+<Tag
+  id={id}
+  class:list={["split", className]}
+  data-split={immediate ? "immediate" : "view"}
+  style={`--split-delay:${delay}ms`}
+>
+  {
+    words.map(({ w, accent, i }) => [
+      <span class="split-mask">
+        <span class:list={["split-word", accent && "text-glass"]} style={`--i:${i}`}>
+          {w}
+        </span>
+      </span>,
+      " ",
+    ])
+  }
+</Tag>

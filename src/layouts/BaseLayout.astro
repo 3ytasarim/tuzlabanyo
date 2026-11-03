@@ -1,0 +1,95 @@
+---
+import "@/styles/global.css";
+import SeoHead from "@/components/seo/SeoHead.astro";
+import Header from "@/components/react/Header";
+import SmoothScroll from "@/components/react/SmoothScroll";
+import lockupDark from "@/assets/brand/lockup-dark-bg.png";
+import { familyList, servicesOf } from "@/data/services";
+import { primaryPhone } from "@/config/site";
+import SiteFooter from "@/components/layout/SiteFooter.astro";
+import ContactRail from "@/components/layout/ContactRail.astro";
+import { getImage } from "astro:assets";
+import { site } from "@/config/site";
+import { photos } from "@/data/photos";
+
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+  ogImage?: ImageMetadata;
+  ogImageAlt?: string;
+  noindex?: boolean | undefined;
+  jsonLd?: Record<string, unknown> | undefined;
+  /** WhatsApp ön dolu mesaj konusu */
+  topic?: string | undefined;
+}
+
+const { title, description, path, ogImage = photos.geometrikKose.src, ogImageAlt = photos.geometrikKose.alt, noindex, jsonLd, topic } =
+  Astro.props;
+const og = await getImage({ src: ogImage, width: 1200, height: 630, fit: "cover", format: "jpg", quality: 82 });
+const ogUrl = new URL(og.src, site.url).href;
+
+// Header verisi (React adacığına düz nesne)
+const logoH = 44;
+const logoW = Math.round((lockupDark.width / lockupDark.height) * logoH);
+const logoImg = await getImage({ src: lockupDark, widths: [logoW, logoW * 2], format: "webp", quality: 90 });
+const navFamilies = await Promise.all(
+  familyList.map(async (f) => ({
+    label: f.navLabel,
+    hubLabel: `${f.name.charAt(0).toLocaleUpperCase("tr")}${f.name.slice(1)} karşılaştırması`,
+    hubHref: `/${f.slug}/`,
+    blurb: f.lead,
+    items: await Promise.all(
+      servicesOf(f.id).map(async (s) => ({
+        label: s.name,
+        href: `/${s.slug}/`,
+        line: s.cardLine,
+        thumb: s.photos[0] ? (await getImage({ src: s.photos[0].src, width: 640, height: 720, fit: "cover", format: "webp", quality: 70 })).src : null,
+      })),
+    ),
+  })),
+);
+const navLinks = [
+  { label: "Uygulamalar", href: "/uygulamalarimiz/" },
+  { label: "İletişim", href: "/iletisim/" },
+  { label: "Hizmetlerimiz", href: "/hizmetlerimiz/" },
+  { label: "Hakkımızda", href: "/hakkimizda/" },
+];
+---
+
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#06080a" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <SeoHead {title} {description} {path} ogImage={ogUrl} {ogImageAlt} {noindex} {jsonLd} />
+    <script is:inline>document.documentElement.classList.add("js");</script>
+  </head>
+  <body class="min-h-dvh overflow-x-clip">
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <Header
+      client:load
+      logo={{ src: logoImg.src, srcSet: logoImg.srcSet.attribute, width: logoW, height: logoH }}
+      families={navFamilies}
+      links={navLinks}
+      phone={primaryPhone()}
+      current={path}
+    />
+    <SmoothScroll client:idle />
+    <main id="icerik" tabindex="-1" class="outline-none">
+      <slot />
+    </main>
+    <SiteFooter />
+    <ContactRail topic={topic} />
+    <script>
+      import "@/scripts/motion";
+    </script>
+  </body>
+</html>

@@ -1,0 +1,113 @@
+---
+/**
+ * İç sayfa başlığı: koyu cam sahne. Arka planda sayfanın fotoğrafı (bulanık, yavaş yakınlaşma),
+ * önde cam kart (breadcrumb, H1, giriş, eylemler) ve sağda keskin fotoğraf ya da mimari çizim.
+ */
+import Photo from "@/components/ui/Photo.astro";
+import Button from "@/components/ui/Button.astro";
+import Icon from "@/components/ui/Icon.astro";
+import Breadcrumbs from "@/components/layout/Breadcrumbs.astro";
+import ServiceIllustration from "@/components/ui/ServiceIllustration.astro";
+import type { Photo as PhotoData } from "@/data/photos";
+import type { Illustration } from "@/data/services";
+import { primaryPhone, whatsappHref } from "@/config/site";
+import { getImage } from "astro:assets";
+import { BlurText } from "@/components/react/primitives";
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  /** Başlığın vurgulu (mavi) son kısmı */
+  accent?: string | undefined;
+  lead: string;
+  crumbs: { name: string; href: string }[];
+  photo?: PhotoData | undefined;
+  illustration?: Illustration | undefined;
+  topic?: string | undefined;
+  facts?: { label: string; value: string }[] | undefined;
+}
+const { eyebrow, title, accent, lead, crumbs, photo, illustration, topic, facts } = Astro.props;
+const phone = primaryPhone();
+const wa = whatsappHref(topic);
+const bg = photo ? await getImage({ src: photo.src, width: 960, format: "webp", quality: 40 }) : null;
+---
+
+<section class="page-hero on-night night-glow relative isolate overflow-hidden text-night-text">
+  {
+    bg && (
+      <div class="page-hero-bg absolute inset-0 -z-10" aria-hidden="true">
+        <img src={bg.src} alt="" width={960} height={Math.round((960 / photo!.src.width) * photo!.src.height)} class="size-full scale-110 object-cover opacity-35 blur-2xl" decoding="async" />
+        <div class="absolute inset-0 bg-gradient-to-b from-night/40 via-night/70 to-night"></div>
+      </div>
+    )
+  }
+  <div class="mx-auto grid max-w-[82.5rem] items-center gap-10 px-5 pb-16 pt-28 sm:px-8 sm:pt-32 lg:grid-cols-12 lg:gap-8 lg:px-10 lg:pb-24 lg:pt-36">
+    <div class="glass-night rounded-2xl p-6 sm:p-9 lg:col-span-7">
+      <Breadcrumbs items={crumbs} />
+      <p class="eyebrow mt-8">{eyebrow}</p>
+      <BlurText client:load as="h1" text={title} accent={accent} className="mt-4 text-[clamp(2.4rem,1.5rem+3.4vw,4.75rem)] font-semibold leading-[1.02] tracking-[-0.045em] text-white" />
+      <p class="mt-6 max-w-xl text-lead text-night-muted">{lead}</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        {
+          wa && (
+            <a href={wa} rel="noopener" target="_blank" data-magnetic data-event="whatsapp_click" data-event-location="page_hero" class="group inline-flex min-h-14 items-center gap-2.5 rounded-sm bg-[#15803d] px-6 font-display font-semibold text-white transition-colors hover:bg-[#166534]">
+              <Icon name="whatsapp" /> WhatsApp'tan teklif alın <span class="sr-only">(yeni sekmede açılır)</span>
+            </a>
+          )
+        }
+        {
+          phone && (
+            <Button href={phone.href} variant="ghost-night" size="lg" data-magnetic data-event="call_click" data-event-location="page_hero">
+              <Icon name="phone" /> {phone.label}
+            </Button>
+          )
+        }
+      </div>
+    </div>
+
+    <div class="relative lg:col-span-5">
+      {
+        photo ? (
+          <figure class="page-hero-photo relative">
+            <div class="glass-night rounded-2xl p-2">
+              <Photo photo={photo} ratio="4/5" priority class="glare rounded-xl" sizes="(min-width: 1320px) 520px, (min-width: 1024px) 38vw, 90vw" widths={[480, 720, 960, 1280]} />
+            </div>
+            <figcaption class="mt-3 text-sm text-night-muted">{photo.caption}</figcaption>
+          </figure>
+        ) : illustration ? (
+          <figure>
+            <div class="glass-night overflow-hidden rounded-2xl p-3">
+              <ServiceIllustration kind={illustration} title={`${title}${accent ? " " + accent : ""} çizimi`} />
+            </div>
+            <figcaption class="mt-3 text-sm text-night-muted">Çizim temsilidir; uygulama fotoğrafı değildir.</figcaption>
+          </figure>
+        ) : null
+      }
+    </div>
+  </div>
+
+  {
+    facts && facts.length > 0 && (
+      <div class="mx-auto max-w-[82.5rem] px-5 pb-16 sm:px-8 lg:px-10 lg:pb-20">
+        <dl class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {facts.map((f, i) => (
+            <div class="fact glass-night rounded-xl px-5 py-4" style={`--d:${300 + i * 80}ms`}>
+              <dt class="text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-night-muted">{f.label}</dt>
+              <dd class="mt-1.5 font-display font-semibold">{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    )
+  }
+</section>
+
+<style>
+  @media (prefers-reduced-motion: no-preference) {
+    .page-hero-bg img { animation: hero-zoom 18s ease-out both; }
+    :global(.js) .page-hero-photo { animation: hero-rise 1100ms var(--ease-out-expo) 200ms both; }
+    :global(.js) .fact { animation: hero-rise 900ms var(--ease-out-expo) both; animation-delay: var(--d); }
+  }
+  @keyframes hero-zoom { from { transform: scale(1.25); } to { transform: scale(1.1); } }
+  @keyframes hero-rise { from { opacity: 0; transform: translateY(18px); } }
+</style>

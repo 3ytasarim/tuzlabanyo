@@ -1,0 +1,271 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter-tight/wght.css";
+
+/*
+ * Tasarım tokenları
+ * Renkler CSS değişkeni olarak tanımlanır, koyu temada değişkenler yer değiştirir;
+ * Tailwind yardımcıları (bg-paper, text-ink …) bu değişkenleri kullanır.
+ */
+:root {
+  /* Koyu premium tema (tek tema). İsimler geriye dönük uyum için korunur:
+     ink = metin, paper = sayfa zemini, surface = yükseltilmiş yüzey, glass = vurgu. */
+  --c-ink: #f2f5f7;
+  --c-ink-2: #c9d3d8;
+  --c-paper: #06080a;
+  --c-surface: #0c1114;
+  --c-line: #1b2429;
+  --c-muted: #97a3aa;
+  --c-glass: #8ec5ff;
+  --c-glass-strong: #b8dbff;
+  --c-glass-light: #8ec5ff;
+  --c-on-glass: #06080a;
+  --c-night: #040607;
+  --c-night-2: #090d10;
+  --c-night-line: #1b2429;
+  --c-night-text: #f2f5f7;
+  --c-night-muted: #97a3aa;
+  --c-blue: #2f7de1;
+  color-scheme: dark;
+}
+
+
+@theme {
+  --color-ink: var(--c-ink);
+  --color-ink-2: var(--c-ink-2);
+  --color-paper: var(--c-paper);
+  --color-surface: var(--c-surface);
+  --color-line: var(--c-line);
+  --color-muted: var(--c-muted);
+  --color-glass: var(--c-glass);
+  --color-glass-strong: var(--c-glass-strong);
+  --color-glass-light: var(--c-glass-light);
+  --color-on-glass: var(--c-on-glass);
+  --color-night: var(--c-night);
+  --color-night-2: var(--c-night-2);
+  --color-night-line: var(--c-night-line);
+  --color-night-text: var(--c-night-text);
+  --color-night-muted: var(--c-night-muted);
+
+  --font-display: "Inter Tight Variable", ui-sans-serif, system-ui, sans-serif;
+  /* Gövde: sistem fontu (Segoe UI / SF Pro / Roboto); hepsi Türkçe karakterleri tam destekler, 0 KB indirme. */
+  --font-sans: "Inter Tight Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --text-display: clamp(2.375rem, 1.7rem + 3.2vw, 4.5rem);
+  --text-display--line-height: 1.02;
+  --text-h2: clamp(2.25rem, 1.4rem + 3vw, 4.25rem);
+  --text-h2--line-height: 1.02;
+  --text-h3: clamp(1.2rem, 1.08rem + 0.55vw, 1.6rem);
+  --text-h3--line-height: 1.25;
+  --text-lead: clamp(1.05rem, 0.98rem + 0.35vw, 1.25rem);
+  --text-lead--line-height: 1.6;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 6rem;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+  body {
+    background: var(--c-paper);
+    color: var(--c-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.65;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+  :focus-visible {
+    outline: 2px solid var(--c-glass);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  .on-night :focus-visible { outline-color: var(--c-glass-light); }
+  ::selection { background: var(--c-glass-light); color: #06080a; }
+  body { font-feature-settings: "ss01", "cv11"; }
+}
+
+@layer components {
+  /* Üst etiket: logodaki "— DUŞ CAM BALKON —" çizgisinden türetildi */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #8ec5ff;
+  }
+
+  /* İnce "profil çizgisi" */
+  .rule { height: 1px; background: var(--c-line); border: 0; }
+  .on-night .rule { background: var(--c-night-line); }
+
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 300ms var(--ease-out-expo);
+  }
+  .link-underline:hover,
+  .link-underline:focus-visible { background-size: 100% 1px; }
+}
+
+/* Bölüm girişleri: yalnızca JS çalışıyorsa ve hareket azaltılmamışsa gizli başlar */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 700ms var(--ease-out-expo), transform 700ms var(--ease-out-expo);
+  }
+  .js [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Hareket sistemi (Sprint 1 rev.) ---------- */
+
+/* Kelime kelime başlık */
+.split-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+.split-word { display: inline-block; }
+@media (prefers-reduced-motion: no-preference) {
+  .js .split .split-word {
+    transform: translateY(105%);
+    transition: transform 900ms var(--ease-out-expo);
+    transition-delay: calc(var(--split-delay, 0ms) + var(--i) * 55ms);
+  }
+  .js .split.is-visible .split-word { transform: none; }
+}
+
+/* Sayfa üstü kaydırma çizgisi */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 60;
+  transform-origin: 0 50%;
+  transform: scaleX(var(--progress, 0));
+  background: linear-gradient(90deg, var(--c-glass-light), var(--c-glass));
+  pointer-events: none;
+}
+
+/* Header: aşağı kaydırınca gizlenir, yukarıda geri gelir */
+[data-header] { transition: transform 400ms var(--ease-out-expo), box-shadow 300ms; }
+[data-header].is-hidden { transform: translateY(-100%); }
+[data-header].is-scrolled { box-shadow: 0 1px 0 var(--c-line), 0 8px 24px rgb(14 20 24 / 0.06); }
+
+/* Mıknatıslı buton (yalnız ince imleçli cihazlarda JS ile) */
+[data-magnetic] { transition: transform 350ms var(--ease-out-expo); will-change: transform; }
+
+/* Cam parıltısı: fotoğraf üzerinde bir kez geçen ışık */
+.glare { position: relative; isolation: isolate; }
+.glare::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.32) 48%, rgb(255 255 255 / 0.08) 54%, transparent 62%);
+  transform: translateX(-120%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .glare:hover::after, .glare.is-glaring::after { transform: translateX(120%); transition: transform 1100ms var(--ease-out-expo); }
+}
+
+/* Akan bant */
+@keyframes marquee { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: no-preference) {
+  .marquee-track { animation: marquee 48s linear infinite; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+}
+
+/* ---------- Cam (glass) yüzeyler ---------- */
+@layer components {
+  .glass {
+    background: linear-gradient(145deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02));
+    border: 1px solid rgb(255 255 255 / 0.09);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 30px 60px -30px rgb(0 0 0 / 0.7);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  }
+  .glass-night {
+    background: linear-gradient(135deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.04));
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 24px 60px -30px rgb(0 0 0 / 0.6);
+    backdrop-filter: blur(18px) saturate(1.3);
+    -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  }
+  /* Koyu bölümlerde yumuşak cam ışığı (tek renk, marka mavisi) */
+  .night-glow {
+    background:
+      radial-gradient(60% 60% at 85% 0%, rgb(47 125 225 / 0.18), transparent 70%),
+      radial-gradient(50% 50% at 0% 100%, rgb(142 197 255 / 0.08), transparent 70%),
+      var(--c-night);
+  }
+}
+
+/* ---------- Premium efektler (React bileşenleriyle birlikte) ---------- */
+.text-gradient {
+  background: linear-gradient(100deg, #f2f5f7 0%, #b8dbff 45%, #5aa2f0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero-grid-bg {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 80% 60% at 60% 30%, #000 30%, transparent 80%);
+}
+.marquee-mask { mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+.shimmer-sweep {
+  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.55) 48%, transparent 66%);
+  transform: translateX(-120%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .shimmer:hover .shimmer-sweep, .shimmer:focus-visible .shimmer-sweep { transform: translateX(120%); transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .shimmer .shimmer-sweep { animation: shimmer-idle 5s cubic-bezier(0.16, 1, 0.3, 1) 2s infinite; }
+}
+@keyframes shimmer-idle { 0%, 70% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+.noise::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }

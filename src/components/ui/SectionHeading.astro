@@ -1,0 +1,18 @@
+---
+import SplitHeading from "@/components/ui/SplitHeading.astro";
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  id?: string;
+  lead?: string;
+  class?: string;
+}
+const { eyebrow, title, id, lead, class: className } = Astro.props;
+---
+
+<div class:list={["max-w-2xl", className]}>
+  <p class="eyebrow">{eyebrow}</p>
+  <SplitHeading id={id} parts={[[title]]} class="mt-4 text-h2 font-semibold" />
+  {lead && <p class="mt-5 text-lead text-muted" data-reveal>{lead}</p>}
+</div>

@@ -1,0 +1,275 @@
+---
+/**
+ * Kabin stüdyosu: profil rengi + cam tipi seçilir, SVG kabin canlı değişir, kapı açılıp kapanır
+ * ve seçime en yakın GERÇEK uygulama fotoğrafı gösterilir.
+ * Seçenekler yalnızca uygulama fotoğraflarında görülenlerdir.
+ * JS yoksa: varsayılan kombinasyon ve fotoğraf statik görünür, seçiciler gizlenir.
+ */
+import { getImage } from "astro:assets";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import { photos, type Photo } from "@/data/photos";
+
+const profiles = [
+  { id: "siyah", name: "Siyah" },
+  { id: "krom", name: "Krom" },
+  { id: "beyaz", name: "Beyaz" },
+] as const;
+const glasses = [
+  { id: "seffaf", name: "Şeffaf" },
+  { id: "buzlu", name: "Buzlu" },
+  { id: "bantli", name: "Bantlı buzlu" },
+  { id: "desenli", name: "Kafes desenli" },
+] as const;
+
+// Seçim → en yakın gerçek uygulama (tam eşleşme yoksa en yakını; açıklamada belirtilir)
+const match = (p: string, g: string): { photo: Photo; exact: boolean } => {
+  const key = `${p}-${g}`;
+  const exact: Record<string, Photo> = {
+    "siyah-bantli": photos.siyahBantliKose,
+    "siyah-buzlu": photos.siyahBuzluOval,
+    "siyah-desenli": photos.kafesKose,
+    "krom-seffaf": photos.kromSeffafKose,
+    "krom-bantli": photos.kromBantliKose,
+  };
+  if (exact[key]) return { photo: exact[key], exact: true };
+  if (p === "beyaz") return { photo: photos.beyazIkiDuvar, exact: false };
+  if (p === "krom") return { photo: photos.kromBantliOval, exact: false };
+  return { photo: g === "seffaf" ? photos.kafesKose : photos.siyahIkiDuvar, exact: false };
+};
+
+const combos = await Promise.all(
+  profiles.flatMap((p) =>
+    glasses.map(async (g) => {
+      const { photo, exact } = match(p.id, g.id);
+      const img = await getImage({ src: photo.src, width: 560, height: 700, fit: "cover", format: "webp", quality: 74 });
+      return { key: `${p.id}-${g.id}`, src: img.src, alt: photo.alt, caption: photo.caption, exact };
+    }),
+  ),
+);
+const initial = combos.find((c) => c.key === "siyah-bantli")!;
+---
+
+<section aria-labelledby="studyo-title" class="studio mx-auto max-w-[82.5rem] px-5 py-20 sm:px-8 lg:px-10 lg:py-28" data-studio>
+  <SectionHeading
+    id="studyo-title"
+    eyebrow="Kabin stüdyosu"
+    title="Profili ve camı seçin, kabin değişsin."
+    lead="Seçenekler uygulamalarımızda kullandıklarımızdır. Sağda, seçiminize en yakın gerçek işimizi görürsünüz."
+  />
+
+  <div class="mt-14 grid gap-10 lg:grid-cols-12 lg:gap-8">
+    <!-- Çizim -->
+    <div class="relative overflow-hidden rounded-md border border-line bg-surface lg:col-span-5" data-reveal>
+      <svg
+        viewBox="0 0 400 520"
+        class="cabin block h-auto w-full"
+        data-profile="siyah"
+        data-glass="bantli"
+        role="img"
+        aria-labelledby="cabin-desc"
+      >
+        <title id="cabin-desc">Seçilen profil ve camla köşe duşakabin çizimi</title>
+        <defs>
+          <linearGradient id="krom" x1="0" x2="1">
+            <stop offset="0" stop-color="#eef1f2" /><stop offset=".45" stop-color="#9aa3a8" />
+            <stop offset=".55" stop-color="#f4f6f7" /><stop offset="1" stop-color="#8b9398" />
+          </linearGradient>
+          <linearGradient id="g-clear" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#96c3ed" stop-opacity=".22" /><stop offset="1" stop-color="#96c3ed" stop-opacity=".06" />
+          </linearGradient>
+          <linearGradient id="g-band" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#96c3ed" stop-opacity=".16" />
+            <stop offset=".36" stop-color="#96c3ed" stop-opacity=".12" />
+            <stop offset=".36" stop-color="#dfe6ea" stop-opacity=".95" />
+            <stop offset=".62" stop-color="#dfe6ea" stop-opacity=".95" />
+            <stop offset=".62" stop-color="#96c3ed" stop-opacity=".12" />
+            <stop offset="1" stop-color="#96c3ed" stop-opacity=".06" />
+          </linearGradient>
+          <pattern id="g-grid" width="36" height="44" patternUnits="userSpaceOnUse">
+            <path d="M36 0V44M0 44H36" class="grid-line" stroke-width="3" fill="none" />
+          </pattern>
+        </defs>
+
+        <!-- duvarlar ve zemin -->
+        <path d="M20 10V500M380 10V500" stroke="var(--c-line)" stroke-width="2" />
+        <rect x="20" y="488" width="360" height="22" fill="var(--c-paper)" stroke="var(--c-line)" />
+        <rect x="52" y="474" width="296" height="16" rx="2" fill="var(--c-surface)" stroke="var(--c-line)" />
+
+        <!-- sabit panel -->
+        <g class="panel">
+          <rect class="glass-clear" x="62" y="52" width="140" height="414" />
+          <rect class="glass-layer g-buzlu" x="62" y="52" width="140" height="414" fill="#dfe6ea" fill-opacity=".92" />
+          <rect class="glass-layer g-bantli" x="62" y="52" width="140" height="414" fill="url(#g-band)" />
+          <rect class="glass-layer g-desenli" x="62" y="52" width="140" height="414" fill="url(#g-grid)" />
+          <path d="M80 120 140 60M80 170 170 80" stroke="#fff" stroke-opacity=".55" stroke-width="2" />
+        </g>
+        <!-- kapı -->
+        <g class="door-leaf">
+          <rect class="glass-clear" x="196" y="52" width="142" height="414" />
+          <rect class="glass-layer g-buzlu" x="196" y="52" width="142" height="414" fill="#dfe6ea" fill-opacity=".92" />
+          <rect class="glass-layer g-bantli" x="196" y="52" width="142" height="414" fill="url(#g-band)" />
+          <rect class="glass-layer g-desenli" x="196" y="52" width="142" height="414" fill="url(#g-grid)" />
+          <path d="M214 130 280 64M214 190 310 94" stroke="#fff" stroke-opacity=".55" stroke-width="2" />
+          <rect class="profile" x="196" y="52" width="6" height="414" />
+          <rect class="profile" x="206" y="230" width="6" height="70" rx="3" />
+        </g>
+        <!-- profil çerçevesi -->
+        <rect class="profile" x="56" y="44" width="288" height="10" />
+        <rect class="profile" x="56" y="464" width="288" height="10" />
+        <rect class="profile" x="56" y="44" width="8" height="430" />
+        <rect class="profile" x="336" y="44" width="8" height="430" />
+      </svg>
+
+      <div class="flex items-center justify-between gap-4 border-t border-line px-5 py-4">
+        <p class="text-sm text-muted" aria-live="polite" data-studio-label>Siyah profil · Bantlı buzlu cam</p>
+        <button type="button" class="studio-js min-h-11 shrink-0 rounded-sm border border-ink/70 px-4 font-display text-sm font-semibold hover:bg-ink hover:text-paper" aria-pressed="false" data-door-toggle>
+          Kapıyı aç
+        </button>
+      </div>
+    </div>
+
+    <!-- Seçiciler -->
+    <div class="studio-js flex flex-col justify-center gap-10 lg:col-span-3" data-reveal>
+      <fieldset>
+        <legend class="eyebrow">Profil rengi</legend>
+        <div class="mt-5 flex flex-wrap gap-3">
+          {
+            profiles.map((p, i) => (
+              <label class="chip">
+                <input type="radio" name="studio-profile" value={p.id} checked={i === 0} class="sr-only" />
+                <span class:list={["chip-swatch", `sw-${p.id}`]} aria-hidden="true" />
+                {p.name}
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend class="eyebrow">Cam</legend>
+        <div class="mt-5 flex flex-wrap gap-3">
+          {
+            glasses.map((g) => (
+              <label class="chip">
+                <input type="radio" name="studio-glass" value={g.id} checked={g.id === "bantli"} class="sr-only" />
+                {g.name}
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+      <p class="text-sm text-muted">Farklı bir renk ya da cam arıyorsanız bize sorun.</p>
+    </div>
+
+    <!-- Gerçek uygulama -->
+    <figure class="lg:col-span-4" data-reveal>
+      <div class="glare overflow-hidden rounded-md bg-line" style="aspect-ratio:4/5">
+        <img
+          src={initial.src}
+          alt={initial.alt}
+          width="560"
+          height="700"
+          loading="lazy"
+          decoding="async"
+          class="studio-photo size-full object-cover"
+          data-studio-photo
+        />
+      </div>
+      <figcaption class="mt-3 flex items-start gap-3 text-sm text-muted">
+        <span class="mt-2.5 h-px w-8 shrink-0 bg-current opacity-60"></span>
+        <span data-studio-caption>Uygulamamızdan: {initial.caption}</span>
+      </figcaption>
+    </figure>
+  </div>
+
+  <script type="application/json" data-studio-combos set:html={JSON.stringify(combos).replace(/</g, "\\u003c")} />
+</section>
+
+<style>
+  .cabin {
+    --pfill: #15191b;
+    --pline: #15191b;
+  }
+  .cabin[data-profile="krom"] { --pfill: url(#krom); --pline: #9aa3a8; }
+  .cabin[data-profile="beyaz"] { --pfill: #f7f8f8; --pline: #e3e7e9; }
+  .cabin .profile { fill: var(--pfill); stroke: rgb(14 20 24 / 0.18); stroke-width: 0.6; transition: fill 400ms; }
+  .cabin .grid-line { stroke: var(--pline); }
+  .cabin .glass-clear { fill: url(#g-clear); }
+  .cabin .glass-layer { opacity: 0; transition: opacity 500ms var(--ease-out-expo); }
+  .cabin[data-glass="buzlu"] .g-buzlu,
+  .cabin[data-glass="bantli"] .g-bantli,
+  .cabin[data-glass="desenli"] .g-desenli { opacity: 1; }
+  .cabin .door-leaf { transition: transform 900ms var(--ease-out-expo); }
+  .cabin.is-door-open .door-leaf { transform: translateX(-118px); }
+
+  .chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid var(--c-line);
+    border-radius: 999px;
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 200ms, background-color 200ms, color 200ms;
+  }
+  .chip:hover { border-color: var(--c-ink); }
+  .chip:has(input:checked) { background: var(--c-ink); border-color: var(--c-ink); color: var(--c-paper); }
+  .chip:has(input:focus-visible) { outline: 2px solid var(--c-glass); outline-offset: 3px; }
+  .chip-swatch { width: 18px; height: 18px; border-radius: 999px; border: 1px solid rgb(14 20 24 / 0.25); }
+  .sw-siyah { background: #15191b; }
+  .sw-krom { background: linear-gradient(135deg, #f4f6f7, #9aa3a8 50%, #eef1f2 60%, #8f979c); }
+  .sw-beyaz { background: #fff; }
+
+  .studio-photo { transition: opacity 350ms var(--ease-out-expo), transform 700ms var(--ease-out-expo); }
+  .studio-photo.is-swapping { opacity: 0; transform: scale(1.02); }
+
+  :global(html:not(.js)) .studio-js { display: none; }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>("[data-studio]");
+  if (root) {
+    const svg = root.querySelector<SVGSVGElement>(".cabin")!;
+    const label = root.querySelector<HTMLElement>("[data-studio-label]")!;
+    const img = root.querySelector<HTMLImageElement>("[data-studio-photo]")!;
+    const cap = root.querySelector<HTMLElement>("[data-studio-caption]")!;
+    const toggle = root.querySelector<HTMLButtonElement>("[data-door-toggle]")!;
+    const combos = JSON.parse(root.querySelector("[data-studio-combos]")!.textContent!) as {
+      key: string; src: string; alt: string; caption: string; exact: boolean;
+    }[];
+    const nameOf = (name: string) =>
+      root.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)!;
+
+    const update = () => {
+      const p = nameOf("studio-profile");
+      const g = nameOf("studio-glass");
+      svg.dataset.profile = p.value;
+      svg.dataset.glass = g.value;
+      const pName = p.parentElement!.textContent!.trim();
+      const gName = g.parentElement!.textContent!.trim();
+      label.textContent = `${pName} profil · ${gName.toLocaleLowerCase("tr")} cam`;
+      const c = combos.find((x) => x.key === `${p.value}-${g.value}`);
+      if (c && !img.src.endsWith(c.src)) {
+        img.classList.add("is-swapping");
+        const next = new Image();
+        next.src = c.src;
+        next.decode().catch(() => {}).finally(() => {
+          img.src = c.src;
+          img.alt = c.alt;
+          cap.textContent = `${c.exact ? "Uygulamamızdan" : "En yakın uygulamamız"}: ${c.caption}`;
+          img.classList.remove("is-swapping");
+        });
+      }
+    };
+    root.querySelectorAll('input[type="radio"]').forEach((r) => r.addEventListener("change", update));
+    toggle.addEventListener("click", () => {
+      const open = svg.classList.toggle("is-door-open");
+      toggle.setAttribute("aria-pressed", String(open));
+      toggle.textContent = open ? "Kapıyı kapat" : "Kapıyı aç";
+    });
+  }
+</script>

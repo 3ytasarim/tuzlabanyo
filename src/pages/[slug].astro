@@ -1,0 +1,17 @@
+---
+/** Hizmet ve aile sayfaları tek route'tan üretilir (src/data/services.ts). */
+import type { GetStaticPaths } from "astro";
+import ServiceView from "@/components/views/ServiceView.astro";
+import FamilyView from "@/components/views/FamilyView.astro";
+import { services, familyList, type Service, type Family } from "@/data/services";
+
+export const getStaticPaths = (() => [
+  ...services.map((service) => ({ params: { slug: service.slug }, props: { kind: "service" as const, service } })),
+  ...familyList.map((family) => ({ params: { slug: family.slug }, props: { kind: "family" as const, family } })),
+]) satisfies GetStaticPaths;
+
+type Props = { kind: "service"; service: Service } | { kind: "family"; family: Family };
+const props = Astro.props as Props;
+---
+
+{props.kind === "service" ? <ServiceView service={props.service} /> : <FamilyView family={props.family} />}
