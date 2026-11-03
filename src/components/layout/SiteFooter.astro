@@ -69,12 +69,37 @@ const pages = [
     <hr class="rule mt-6" />
     <div class="mt-6 flex flex-col gap-3 text-sm text-night-muted sm:flex-row sm:justify-between">
       <p>© {year} {site.name} · <a href="/gizlilik-politikasi/" class="link-underline">Gizlilik politikası</a></p>
-      <p><a href="/uygulamalarimiz/" class="link-underline">Uygulamalarımız</a> sayfasındaki fotoğraflar Tuzla Duş işleridir.</p>
+      <p>
+        <a href="https://3ytasarim.com" rel="noopener" target="_blank" class="credit group inline-flex items-center gap-2">
+          <span class="text-night-muted">Design by</span>
+          <span class="credit-name font-semibold">3Y Tasarım &amp; Yazılım Hizmetleri</span>
+          <svg class="credit-arrow size-3.5 text-[#8ec5ff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
+          <span class="sr-only">(yeni sekmede açılır)</span>
+        </a>
+      </p>
     </div>
   </div>
 </footer>
 
 <style>
+  .credit-name {
+    background: linear-gradient(90deg, #f2f5f7 0%, #f2f5f7 35%, #8ec5ff 50%, #f2f5f7 65%, #f2f5f7 100%);
+    background-size: 250% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .credit-arrow { transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .credit:hover .credit-arrow, .credit:focus-visible .credit-arrow { transform: translate(2px, -2px); }
+  @media (prefers-reduced-motion: no-preference) {
+    .credit-name { animation: credit-shine 4s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+    .credit:hover .credit-name { animation-duration: 1.4s; }
+  }
+  @keyframes credit-shine {
+    0%, 20% { background-position: 100% 0; }
+    80%, 100% { background-position: 0% 0; }
+  }
   .footer-mark {
     font-size: clamp(4rem, 17vw, 15rem);
     background: linear-gradient(180deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0));
