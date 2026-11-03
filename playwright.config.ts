@@ -7,6 +7,9 @@ const PORT = 4322;
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: true,
+  // Paylaşılan geliştirme makinesinde yük altında zaman aşımlarını önlemek için sınırlı eşzamanlılık
+  workers: 3,
+  expect: { timeout: 10_000 },
   reporter: [["list"]],
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,

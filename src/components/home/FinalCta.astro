@@ -2,6 +2,7 @@
 /** Kapanış çağrısı: büyük geçişli başlık, ışık hüzmesi, parlayan butonlar. */
 import Icon from "@/components/ui/Icon.astro";
 import { BlurText } from "@/components/react/primitives";
+import AuroraBackground from "@/components/react/AuroraBackground";
 import { primaryPhone, whatsappHref } from "@/config/site";
 
 interface Props {
@@ -24,8 +25,8 @@ const cut = Math.max(1, Math.floor(words.length * 0.55));
   <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10">
     <div class="absolute left-1/2 top-0 h-px w-[70%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[#8ec5ff]/60 to-transparent"></div>
     <div class="absolute left-1/2 top-0 h-[34rem] w-[60rem] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_top,rgba(47,125,225,0.28),transparent_65%)]"></div>
-    <div class="hero-grid-bg absolute inset-0 opacity-60"></div>
   </div>
+  <AuroraBackground client:visible intensity={0.75} />
   <div class="mx-auto max-w-4xl text-center">
     <p class="eyebrow justify-center">Bize ulaşın</p>
     <BlurText

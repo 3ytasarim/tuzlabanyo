@@ -31,7 +31,7 @@ const catalog = services.map((s) => ({ name: s.name, url: abs(`/${s.slug}/`) }))
 const jsonLd = graph([businessSchema(abs(logo.src), schemaImages, catalog), websiteSchema()]);
 
 // Hero: üç kendi uygulama fotoğrafı (dikey kırpım)
-const heroImgs = (await toImgs([photos.kafesKose, photos.geometrikKose, photos.isicamBalkon], { ratio: 3 / 5, widths: [360, 540, 720, 960] })) as [Img, Img, Img];
+const heroImgs = (await toImgs([photos.kafesKose, photos.geometrikKose, photos.isicamBalkon], { widths: [480, 720, 960, 1280] })) as [Img, Img, Img];
 
 // Bento: aile başına hizmetler
 const bentoGroups = await Promise.all(

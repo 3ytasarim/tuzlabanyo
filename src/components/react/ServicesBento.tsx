@@ -82,9 +82,7 @@ export default function ServicesBento({ groups }: { groups: BentoGroup[] }) {
                     {it.img ? (
                       <Pic img={it.img} sizes={i === 0 ? "(min-width:1024px) 40vw, 100vw" : "(min-width:1024px) 20vw, 50vw"} className="absolute inset-0" imgClassName="transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.07]" />
                     ) : (
-                      <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(47,125,225,0.35),transparent_60%)]">
-                        <div className="hero-grid-bg absolute inset-0" />
-                      </div>
+                      <div aria-hidden className="absolute inset-0 bg-[radial-gradient(120%_80%_at_80%_0%,rgba(47,125,225,0.45),transparent_60%),radial-gradient(80%_60%_at_0%_100%,rgba(142,197,255,0.15),transparent_70%)]" />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                     <div className="relative z-10 flex items-end justify-between gap-4">

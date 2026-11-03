@@ -25,11 +25,6 @@ const id = `ill-${kind}`;
     </linearGradient>
   </defs>
 
-  <!-- zemin ızgarası -->
-  <g stroke="#2a363c" stroke-width="1">
-    {Array.from({ length: 9 }, (_, i) => <path d={`M${40 + i * 70} 40V440`} opacity=".5" />)}
-    {Array.from({ length: 6 }, (_, i) => <path d={`M40 ${40 + i * 80}H600`} opacity=".5" />)}
-  </g>
 
   {
     kind === "kis-bahcesi" && (

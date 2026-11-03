@@ -43,7 +43,7 @@ export function BlurText({
       transition={{ staggerChildren: 0.06, delayChildren: delay }}
     >
       {words.map(({ w, a }, i) => (
-        <motion.span key={i} variants={item} className={`inline-block ${a ? "text-gradient" : ""}`}>
+        <motion.span key={i} variants={item} className={`inline-block ${a ? "text-[#8ec5ff]" : ""}`}>
           {w}
           {i < words.length - 1 ? " " : ""}
         </motion.span>
@@ -131,7 +131,7 @@ export function Magnetic({ children, strength = 0.25, className = "" }: { childr
 /** Optimize <picture>. */
 export function Pic({ img, sizes, className = "", imgClassName = "", priority = false, style }: { img: Img; sizes: string; className?: string; imgClassName?: string; priority?: boolean; style?: React.CSSProperties }) {
   return (
-    <picture className={className}>
+    <picture className={`block h-full w-full ${className}`}>
       <source type="image/avif" srcSet={img.avifSrcSet} sizes={sizes} />
       <img
         src={img.src}
